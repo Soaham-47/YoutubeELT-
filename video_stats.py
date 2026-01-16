@@ -83,24 +83,29 @@ def save_to_json(extracted_data):
     file_path=f'./data/YT_data_{date.today()}.json'
     with open(file_path,"w",encoding="utf-8") as json_outfile:
         json.dump(extracted_data,json_outfile,indent=4,ensure_ascii=False)
-
-
-if __name__ == "__main__":
+        
+def main():
     playlist_id = get_playlist_id()
     
     if not playlist_id:
         print("Could not retrieve playlist ID.")
-    else:
-        video_ids = get_video_ids(playlist_id)
-        
-        if not video_ids:
-            print("No videos found in playlist")
-        else:
-            extracted_data = extract_video_stats(video_ids)
-            if not extracted_data:
-                print("No data was successfully extracted")
-            else:
-                save_to_json(extracted_data)
-        
-                
-   
+        return
+    
+    video_ids = get_video_ids(playlist_id)
+    
+    if not video_ids:
+        print("No videos found in playlist")
+        return
+    
+    extracted_data = extract_video_stats(video_ids)
+
+    if not extracted_data:
+        print("No data was successfully extracted")
+        return
+    
+    save_to_json(extracted_data)
+
+if __name__ == "__main__":
+    main()
+
+
