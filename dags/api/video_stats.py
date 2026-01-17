@@ -1,14 +1,19 @@
 import requests
 import json
 from datetime import date
-import os
-from dotenv import load_dotenv
-load_dotenv()
-API_KEY=os.getenv("API_KEY")
-CHANNEL_HANDLE=os.getenv("CHANNEL_HANDLE")
+
+# import os
+# from dotenv import load_dotenv
+# load_dotenv()
+
+from airflow.decorators import task
+from airflow.models import Variable
+
+API_KEY=Variable.get("API_KEY")
+CHANNEL_HANDLE=Variable.get("CHANNEL_HANDLE")
 max_results=50
 
-
+@task
 def get_playlist_id():
     try:
         url="https://youtube.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=" + CHANNEL_HANDLE + "&key=" + API_KEY
@@ -21,7 +26,7 @@ def get_playlist_id():
         print("Error fetching playlist ID:", e)
         return None
     
-
+@task
 def get_video_ids(playlist_id):
     try:
         base_url=f'https://youtube.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults={max_results}&playlistId={playlist_id}&key={API_KEY}'
@@ -44,7 +49,7 @@ def get_video_ids(playlist_id):
         print("Error fetching video ids:", e)
         return []
     
-
+@task
 def extract_video_stats(video_ids):
     extracted_data=[]
 
@@ -78,34 +83,11 @@ def extract_video_stats(video_ids):
     except Exception as e:
         print("Error fetching video statistics:", e)
         return None
-
+    
+@task
 def save_to_json(extracted_data):
     file_path=f'./data/YT_data_{date.today()}.json'
     with open(file_path,"w",encoding="utf-8") as json_outfile:
         json.dump(extracted_data,json_outfile,indent=4,ensure_ascii=False)
-        
-def main():
-    playlist_id = get_playlist_id()
-    
-    if not playlist_id:
-        print("Could not retrieve playlist ID.")
-        return
-    
-    video_ids = get_video_ids(playlist_id)
-    
-    if not video_ids:
-        print("No videos found in playlist")
-        return
-    
-    extracted_data = extract_video_stats(video_ids)
-
-    if not extracted_data:
-        print("No data was successfully extracted")
-        return
-    
-    save_to_json(extracted_data)
-
-if __name__ == "__main__":
-    main()
-
-
+     
+   
