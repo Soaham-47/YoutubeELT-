@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 API_KEY=os.getenv("API_KEY")
-CHANNEL_HANDLE="MrBeast"
+CHANNEL_HANDLE=os.getenv("CHANNEL_HANDLE")
 max_results=50
 
 
