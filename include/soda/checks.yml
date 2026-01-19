@@ -1,0 +1,18 @@
+# Ensure there is a space after the colon
+checks for yt_api:
+  - missing_count("Video_id") = 0
+  - duplicate_count("Video_id") = 0
+
+  - likes_integrity_violation = 0:
+      name: "Check for Likes count greater than Video views"
+      likes_integrity_violation query: |
+        SELECT COUNT(*) 
+        FROM yt_api 
+        WHERE "Like_count" > "View_count"
+
+  - comments_integrity_violation = 0:
+      name: "Check for Comment count greater than Video views"
+      comments_integrity_violation query: |
+        SELECT COUNT(*) 
+        FROM yt_api 
+        WHERE "Comment_count" > "View_count"

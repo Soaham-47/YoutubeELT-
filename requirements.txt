@@ -7,3 +7,5 @@ pycparser==2.23
 python-dotenv==1.2.1
 requests==2.32.5
 urllib3==2.6.3
+soda-core-postgres==3.3.14
+pytest==8.3.2
