@@ -12,7 +12,7 @@ local_tz = pendulum.timezone("Asia/Kolkata")
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2025, 6, 20, tzinfo=local_tz),
+    'start_date': datetime(2026, 1, 21, tzinfo=local_tz),
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
 }
