@@ -71,7 +71,7 @@ POSTGRES_CONN_PORT=5432,
 
 '''Bash
 docker-compose up -d
-Access the Airflow UI at http://localhost:8080(after waiting for 60 sec for the containers to run)
+Access the Airflow UI at http://localhost:8080 (after waiting for 60 sec for the containers to run)
 
 ## Monitoring & Reliability
 Timezone Awareness: Configured for Asia/Kolkata to align with Indian business cycles.
