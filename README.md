@@ -2,7 +2,7 @@
 
 A robust, containerized ELT (Extract, Load, Transform) pipeline designed to ingest, process, and validate YouTube channel analytics. This project demonstrates enterprise-grade data orchestration, focusing on **idempotency**, **data quality**, and **modular architecture**.
 
-## 🏗️ System Architecture
+## System Architecture
 
 The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliability and clear separation of concerns:
 
@@ -13,7 +13,7 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 | :--- | :--- |
@@ -26,7 +26,7 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
 
 ---
 
-## 📂 Database Schema Design
+##  Database Schema Design
 
 The project implements a **Medallion-lite** architecture to ensure data integrity:
 
@@ -35,7 +35,7 @@ The project implements a **Medallion-lite** architecture to ensure data integrit
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 * Docker & Docker Compose installed.
@@ -47,12 +47,15 @@ The project implements a **Medallion-lite** architecture to ensure data integrit
    ```bash
    git clone [https://github.com/Soaham-47/YoutubeELT-s](https://github.com/Soaham-47/YoutubeELT-s)
    cd youtube-elt-pipeline
+   pip install -r requirements.txt
 2. **Environment Configuration:**
 Create a .env file in the root directory.
 
 Airflow Configuration:
 AIRFLOW_UID=50000
 FERNET_KEY=your_generated_key
+AIRFLOW_WWW_USER_USERNAME="airflow"
+AIRFLOW_WWW_USER_PASSWORD="airflow1234"
 
 YouTube API Configuration:
 API_KEY=your_youtube_api_key
@@ -68,4 +71,11 @@ POSTGRES_CONN_PORT=5432
 
 Bash
 docker-compose up -d
-Access the Airflow UI at http://localhost:8080 (Default: admin/admin).s
+Access the Airflow UI at http://localhost:8080 
+
+## Monitoring & Reliability
+Timezone Awareness: Configured for Asia/Kolkata to align with Indian business cycles.
+
+Data Integrity: Integrated Soda SQL ensures 100% schema compliance. If a scan fails, the pipeline halts, preventing "bad data" from reaching the Core layer.
+
+Error Handling: Implemented retry logic and task-level monitoring to handle API rate limits or network hiccups gracefully.
