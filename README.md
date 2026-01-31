@@ -52,26 +52,26 @@ The project implements a **Medallion-lite** architecture to ensure data integrit
 Create a .env file in the root directory.
 
 Airflow Configuration:
-AIRFLOW_UID=50000
-FERNET_KEY=your_generated_key
-AIRFLOW_WWW_USER_USERNAME="airflow"
+AIRFLOW_UID=50000,
+FERNET_KEY=your_generated_key,
+AIRFLOW_WWW_USER_USERNAME="airflow",
 AIRFLOW_WWW_USER_PASSWORD="airflow1234"
 
 YouTube API Configuration:
-API_KEY=your_youtube_api_key
-CHANNEL_HANDLE='MrBeast'
+API_KEY=your_youtube_api_key,
+CHANNEL_HANDLE='MrBeast',
 
 Database Configuration:
-POSTGRES_CONN_USERNAME=postgres
-POSTGRES_CONN_PASSWORD=your_secure_password
-POSTGRES_CONN_HOST=postgres
-POSTGRES_CONN_PORT=5432
+POSTGRES_CONN_USERNAME=postgres,
+POSTGRES_CONN_PASSWORD=your_secure_password,
+POSTGRES_CONN_HOST=postgres,
+POSTGRES_CONN_PORT=5432,
 
 3.**Launch the Pipeline:**
 
-Bash
+'''Bash
 docker-compose up -d
-Access the Airflow UI at http://localhost:8080 
+Access the Airflow UI at http://localhost:8080(after waiting for 60 sec for the containers to run)
 
 ## Monitoring & Reliability
 Timezone Awareness: Configured for Asia/Kolkata to align with Indian business cycles.
