@@ -51,15 +51,15 @@ The project implements a **Medallion-lite** architecture to ensure data integrit
 Create a .env file in the root directory.
 
 Code snippet
-# Airflow Configuration
+Airflow Configuration:
 AIRFLOW_UID=50000
 FERNET_KEY=your_generated_key
 
-# YouTube API Configuration
+YouTube API Configuration:
 API_KEY=your_youtube_api_key
 CHANNEL_HANDLE='MrBeast'
 
-# Database Configuration
+Database Configuration:
 POSTGRES_CONN_USERNAME=postgres
 POSTGRES_CONN_PASSWORD=your_secure_password
 POSTGRES_CONN_HOST=postgres
