@@ -50,7 +50,6 @@ The project implements a **Medallion-lite** architecture to ensure data integrit
 2. **Environment Configuration:**
 Create a .env file in the root directory.
 
-Code snippet
 Airflow Configuration:
 AIRFLOW_UID=50000
 FERNET_KEY=your_generated_key
@@ -69,4 +68,4 @@ POSTGRES_CONN_PORT=5432
 
 Bash
 docker-compose up -d
-Access the Airflow UI at http://localhost:8080 (Default: admin/admin).
+Access the Airflow UI at http://localhost:8080 (Default: admin/admin).s
