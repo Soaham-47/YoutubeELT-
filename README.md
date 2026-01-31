@@ -1,75 +1,72 @@
-##YouTube Data Pipeline (ELT):
-A robust, containerized ELT (Extract, Load, Transform) pipeline designed to ingest, process, and validate YouTube channel analytics. This project showcases enterprise-grade data orchestration using Apache Airflow, Docker, and PostgreSQL.
+# YouTube Analytics ELT Pipeline
 
-🏗️ Architecture
-The pipeline follows a modular 3-DAG (Directed Acyclic Graph) architecture to ensure separation of concerns and reliability:
+A robust, containerized ELT (Extract, Load, Transform) pipeline designed to ingest, process, and validate YouTube channel analytics. This project demonstrates enterprise-grade data orchestration, focusing on **idempotency**, **data quality**, and **modular architecture**.
 
-produce_json: Extracts raw video statistics from the YouTube Data API and persists them as JSON. Scheduled daily at 14:00 IST.
+## 🏗️ System Architecture
 
-update_db: Triggered upon successful extraction. It parses the JSON data and loads it into a PostgreSQL data warehouse with partitioned staging and core schemas.
+The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliability and clear separation of concerns:
 
-data_quality: Triggered after the database update to perform automated validation using Soda, ensuring no null values or schema drifts occur.
+1.  **`produce_json`**: Interacts with the **YouTube Data API v3** to extract raw video metrics. Data is persisted as localized JSON files to act as a landing buffer. 
+    * *Schedule:* Daily at 14:00 IST.
+2.  **`update_db`**: Triggered automatically upon extraction success. It handles the transformation logic and loads data into a **PostgreSQL** warehouse using a multi-layered schema approach.
+3.  **`data_quality`**: The final gatekeeper. Executes automated **Soda SQL** scans to detect null values, schema drift, or volume anomalies before the data is marked as "Production Ready."
 
-🛠️ Tech Stack
-Orchestration: Apache Airflow (2.9.2)
+---
 
-Database: PostgreSQL (Staging & Core schemas)
+## 🛠️ Tech Stack
 
-Containerization: Docker & Docker Compose
+| Component | Technology |
+| :--- | :--- |
+| **Orchestration** | Apache Airflow 2.9.2 |
+| **Language** | Python 3.11+ |
+| **Database** | PostgreSQL (Staging & Core layers) |
+| **Containerization** | Docker & Docker Compose |
+| **Data Validation** | Soda SQL |
+| **Source** | YouTube Data API v3 |
 
-Data Validation: Soda SQL
+---
 
-Language: Python 3.11+
+## 📂 Database Schema Design
 
-API: YouTube Data API v3
+The project implements a **Medallion-lite** architecture to ensure data integrity:
 
-📂 Database Schema Design
-The project implements a clean data layering strategy:
+* **Staging Schema**: A temporary landing zone where data is kept in its near-raw state. This minimizes transformation overhead on the source API and allows for easy re-runs.
+* **Core Schema**: The production-ready warehouse. It features enforced data types, primary keys, and constraints optimized for downstream BI tools or ML models.
 
-Staging: Temporary landing zone for raw data to minimize transformation overhead on the source.
+---
 
-Core: Production-ready schema with enforced types and constraints for downstream analytics.
+## 🚀 Getting Started
 
-🚀 Getting Started
-Prerequisites
-Docker & Docker Compose
+### Prerequisites
+* Docker & Docker Compose installed.
+* A Google Cloud Project with the **YouTube Data API v3** enabled and an API Key generated.
 
-YouTube API Key (Google Cloud Console)
+### Installation & Setup
 
-Installation
-Clone the repository:
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/Soaham-47/YoutubeELT-s](https://github.com/Soaham-47/YoutubeELT-s)
+   cd youtube-elt-pipeline
+2. **Environment Configuration:**
+Create a .env file in the root directory.
 
-'''Bash
-git clone https://github.com/Soaham-47/YoutubeELT-s
-cd youtube-elt-pipeline
-Environment Setup: Create a .env file and add your credentials:
+Code snippet
+# Airflow Configuration
+AIRFLOW_UID=50000
+FERNET_KEY=your_generated_key
 
-Code snippet:
-# Airflow params 
-AIRFLOW_UID="50000"
-AIRFLOW_WWW_USER_USERNAME="airflow"
-AIRFLOW_WWW_USER_PASSWORD="airflow1234"
-FERNET_KEY=generate_using_fernet.py
-
-# Youtube parameters
-API_KEY=your_api_key_here 
+# YouTube API Configuration
+API_KEY=your_youtube_api_key
 CHANNEL_HANDLE='MrBeast'
 
-# Postgres connection - POSTGRES_CONN_USERNAME set to the default postgres user to not create another db
+# Database Configuration
 POSTGRES_CONN_USERNAME=postgres
-POSTGRES_CONN_PASSWORD=your_password
+POSTGRES_CONN_PASSWORD=your_secure_password
 POSTGRES_CONN_HOST=postgres
 POSTGRES_CONN_PORT=5432
 
-Spin up the containers:
+3.**Launch the Pipeline:**
 
 Bash
 docker-compose up -d
-Access Airflow UI: Navigate to http://localhost:8080 (Default credentials: admin/admin).
-
-📊 Pipeline Monitoring
-Timezone Aware: Scheduled specifically for the Asia/Kolkata timezone to align with Indian business cycles.
-
-Error Handling: Implemented retry logic and Slack/Email notifications (optional) for failed tasks.
-
-Validation: Every run is followed by a Soda scan to guarantee data 100% integrity before it reaches the core layer.
+Access the Airflow UI at http://localhost:8080 (Default: admin/admin).
