@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
+import pandas as pd
+
+BASE_DIR = Path(__file__).resolve().parent
+csv_path = BASE_DIR / "yt_api_12-06-2026.csv"
+
+
 
 # -------------------------
 # Page Configuration
@@ -19,7 +26,7 @@ st.caption("MrBeast YouTube Analytics | Snapshot-based Dashboard")
 # -------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("yt_api_12-06-2026.csv")
+    df = pd.read_csv(csv_path)
 
     # Convert data types
     df["Published_at"] = pd.to_datetime(df["Published_at"])
