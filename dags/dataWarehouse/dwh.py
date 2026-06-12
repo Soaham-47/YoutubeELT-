@@ -1,5 +1,6 @@
 import sys
 import os
+
 # Get the absolute path of the directory containing main.py (the dags folder)
 dag_path = os.path.dirname(os.path.abspath(__file__))
 

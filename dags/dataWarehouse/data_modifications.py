@@ -83,7 +83,7 @@ def update_rows(conn, cursor, schema, row):
         raise e
 def delete_rows(conn,cursor,schema,video_ids):
     try:
-        video_ids=f"""({','.join(f"'{id}'" for id in video_ids)})"""
+        video_ids=f"""({','.join(f"'{id}'" for id in video_ids)})""" # Format video_ids as a tuple string for SQL IN clause
         cursor.execute(f"""
                     DELETE FROM {schema}.{table}
                     WHERE "Video_id" IN {video_ids};

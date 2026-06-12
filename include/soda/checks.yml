@@ -9,6 +9,7 @@ checks for yt_api:
         SELECT COUNT(*) 
         FROM yt_api 
         WHERE "Like_count" > "View_count"
+        AND "View_count" > 0
 
   - comments_integrity_violation = 0:
       name: "Check for Comment count greater than Video views"
@@ -16,3 +17,4 @@ checks for yt_api:
         SELECT COUNT(*) 
         FROM yt_api 
         WHERE "Comment_count" > "View_count"
+        AND "View_count" > 0

@@ -11,7 +11,7 @@ from airflow.models import Variable
 
 API_KEY=Variable.get("API_KEY")
 CHANNEL_HANDLE=Variable.get("CHANNEL_HANDLE")
-max_results=50
+max_results=50 #load the data in batches of 50 as the API has a limit of 50 results per request
 
 @task
 def get_playlist_id():
@@ -30,7 +30,7 @@ def get_playlist_id():
 def get_video_ids(playlist_id):
     try:
         base_url=f'https://youtube.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults={max_results}&playlistId={playlist_id}&key={API_KEY}'
-        pageToken = None
+        pageToken = None #pageToken is used for pagination, it will be None for the first request and will be updated with the nextPageToken from the response for subsequent requests, until there are no more pages left to fetch.
         video_ids = []
         while True:
             url=base_url
@@ -55,7 +55,7 @@ def extract_video_stats(video_ids):
 
     def batch_list(video_id_lst,batch_size):
         for video_id in range(0,len(video_id_lst),batch_size):
-            yield video_id_lst[video_id:video_id+batch_size]
+            yield video_id_lst[video_id:video_id+batch_size] #yield is used to create a generator that produces batches of video IDs, allowing us to process them in chunks of the specified batch size.
 
     try:
         for batch in batch_list(video_ids,max_results):
@@ -87,7 +87,7 @@ def extract_video_stats(video_ids):
 @task
 def save_to_json(extracted_data):
     file_path=f'./data/YT_data_{date.today()}.json'
-    with open(file_path,"w",encoding="utf-8") as json_outfile:
-        json.dump(extracted_data,json_outfile,indent=4,ensure_ascii=False)
+    with open(file_path,"w",encoding="utf-8") as json_outfile: #encoding is set to utf-8 to ensure that any special characters in the video titles or other fields are properly handled and saved in the JSON file.
+        json.dump(extracted_data,json_outfile,indent=4,ensure_ascii=False) #indent=4 is used to format the JSON output with an indentation of 4 spaces for better readability, and ensure_ascii=False allows non-ASCII characters to be saved as they are instead of being escaped, which is important for preserving the integrity of the data, especially if it contains special characters or emojis.
      
    
