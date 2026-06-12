@@ -50,39 +50,39 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
 2. **Environment Configuration:**
 Create a .env file in the root directory in the format:
 
-# DockerHub image
+ DockerHub image
 DOCKERHUB_NAMESPACE=your_dockerhub_username
 DOCKERHUB_REPOSITORY=your_repo_name
 IMAGE_TAG=1.0.1
  
-# Postgres connection - POSTGRES_CONN_USERNAME set to the default postgres user to not create another db
+ Postgres connection - POSTGRES_CONN_USERNAME set to the default postgres user to not create another db
 POSTGRES_CONN_USERNAME=postgres
 POSTGRES_CONN_PASSWORD='your_postgres_password'
 POSTGRES_CONN_HOST=postgres
 POSTGRES_CONN_PORT=5432
  
-# Metadata database credentials. This is the database where Airflow stores its metadata, such as DAG runs, task instances, etc. 
+ Metadata database credentials. This is the database where Airflow stores its metadata, such as DAG runs, task instances, etc. 
 METADATA_DATABASE_NAME=airflow_metadata_db
 METADATA_DATABASE_USERNAME=airflow_meta_user
 METADATA_DATABASE_PASSWORD='VNXkgKEPBn69yYwA'
  
-# Celery database credentials. This is the database where Celery stores its task results. 
+ Celery database credentials. This is the database where Celery stores its task results. 
 CELERY_BACKEND_DATABASE_NAME=celery_results_db
 CELERY_BACKEND_USERNAME=celery_user
 CELERY_BACKEND_PASSWORD='L4PYpRNq6mxSQfyj'
  
-# ELT database credentials. This is the database where the ELT process will store the extracted data from the YouTube API.
+ ELT database credentials. This is the database where the ELT process will store the extracted data from the YouTube API.
 ELT_DATABASE_NAME=elt_db
 ELT_DATABASE_USERNAME=yt_api_user
 ELT_DATABASE_PASSWORD='your_elt_password'
  
-# Airflow params 
+ Airflow params 
 AIRFLOW_UID="50000"
 AIRFLOW_WWW_USER_USERNAME="airflow"
 AIRFLOW_WWW_USER_PASSWORD="airflow1234"
 FERNET_KEY="your_fernet_key"
 
-# Youtube parameters
+ Youtube parameters
 API_KEY="your_api_key"
 CHANNEL_HANDLE='MrBeast'
 
