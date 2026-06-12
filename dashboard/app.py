@@ -122,7 +122,7 @@ st.plotly_chart(fig_top_likes, width='stretch')
 # -------------------------
 # Engagement Analysis
 # -------------------------
-st.subheader(" Engagement Analysis(Engagement_rate = (Likes + Comments) / Views)")
+st.subheader(" Engagement Analysis [Engagement_rate = (Likes + Comments) / Views]")
 
 fig_engagement = px.scatter(
     df,
