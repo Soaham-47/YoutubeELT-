@@ -269,7 +269,7 @@ st.dataframe(comparison, use_container_width=True)
 # Average Views Comparison
 # ==========================================
 
-st.subheader("👀 Average Views by Video Type")
+st.subheader(" Average Views by Video Type")
 
 avg_views = (
     df.groupby("Video_type")["View_count"]
