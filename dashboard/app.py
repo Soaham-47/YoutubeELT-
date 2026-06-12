@@ -227,6 +227,121 @@ st.dataframe(
     recent,
     width='stretch'
 )
+# ==========================================
+# Shorts vs Normal Analysis
+# ==========================================
+
+st.divider()
+st.subheader(" Shorts vs Normal Videos")
+
+# Create comparison table
+comparison = (
+    df.groupby("Video_type")
+      .agg(
+          Videos=("Video_id", "count"),
+          Avg_Views=("View_count", "mean"),
+          Avg_Likes=("Like_count", "mean"),
+          Avg_Comments=("Comment_count", "mean"),
+      )
+      .round(0)
+)
+
+# Engagement Rate
+engagement_rate = (
+    (
+        df.groupby("Video_type")["Like_count"].sum()
+        + df.groupby("Video_type")["Comment_count"].sum()
+    )
+    / df.groupby("Video_type")["View_count"].sum()
+    * 100
+).round(2)
+
+comparison["Engagement_Rate (%)"] = engagement_rate
+
+# Format numbers nicely
+comparison["Avg_Views"] = comparison["Avg_Views"].astype(int)
+comparison["Avg_Likes"] = comparison["Avg_Likes"].astype(int)
+comparison["Avg_Comments"] = comparison["Avg_Comments"].astype(int)
+
+st.dataframe(comparison, use_container_width=True)
+
+# ==========================================
+# Average Views Comparison
+# ==========================================
+
+st.subheader("👀 Average Views by Video Type")
+
+avg_views = (
+    df.groupby("Video_type")["View_count"]
+      .mean()
+      .reset_index()
+)
+
+fig_views = px.bar(
+    avg_views,
+    x="Video_type",
+    y="View_count",
+    title="Average Views: Shorts vs Normal",
+    text_auto=".0f",
+)
+
+fig_views.update_layout(
+    xaxis_title="Video Type",
+    yaxis_title="Average Views"
+)
+
+st.plotly_chart(fig_views, use_container_width=True)
+
+# ==========================================
+# Average Likes Comparison
+# ==========================================
+
+st.subheader(" Average Likes by Video Type")
+
+avg_likes = (
+    df.groupby("Video_type")["Like_count"]
+      .mean()
+      .reset_index()
+)
+
+fig_likes = px.bar(
+    avg_likes,
+    x="Video_type",
+    y="Like_count",
+    title="Average Likes: Shorts vs Normal",
+    text_auto=".0f",
+)
+
+fig_likes.update_layout(
+    xaxis_title="Video Type",
+    yaxis_title="Average Likes"
+)
+
+st.plotly_chart(fig_likes, use_container_width=True)
+
+# ==========================================
+# Engagement Rate Comparison
+# ==========================================
+
+st.subheader(" Engagement Rate by Video Type")
+
+engagement_df = engagement_rate.reset_index()
+engagement_df.columns = ["Video_type", "Engagement_Rate"]
+
+fig_engagement = px.bar(
+    engagement_df,
+    x="Video_type",
+    y="Engagement_Rate",
+    title="Engagement Rate (%)",
+    text_auto=".2f",
+)
+
+fig_engagement.update_layout(
+    xaxis_title="Video Type",
+    yaxis_title="Engagement Rate (%)"
+)
+
+st.plotly_chart(fig_engagement, use_container_width=True)
 
 # -------------------------
 # Raw Data
