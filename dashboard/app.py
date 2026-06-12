@@ -122,7 +122,7 @@ st.plotly_chart(fig_top_likes, width='stretch')
 # -------------------------
 # Engagement Analysis
 # -------------------------
-st.subheader(" Engagement Analysis [Engagement_rate = (Likes + Comments) / Views]")
+st.subheader(" Engagement Analysis ")
 
 fig_engagement = px.scatter(
     df,
@@ -165,7 +165,7 @@ st.plotly_chart(fig_uploads, width='stretch')
 # -------------------------
 # Engagement Rate Ranking
 # -------------------------
-st.subheader(" Highest Engagement Videos")
+st.subheader(" Highest Engagement Videos [Engagement_rate = (Likes + Comments) / Views]")
 
 engagement_df = df.copy()
 
