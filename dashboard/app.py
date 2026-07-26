@@ -318,6 +318,33 @@ fig_likes.update_layout(
 st.plotly_chart(fig_likes, use_container_width=True)
 
 # ==========================================
+# Average Comments Comparison
+# ==========================================
+
+st.subheader(" Average Comments by Video Type")
+
+avg_comments = (
+    df.groupby("Video_type")["Comment_count"]
+      .mean()
+      .reset_index()
+)
+
+fig_comments = px.bar(
+    avg_comments,
+    x="Video_type",
+    y="Comment_count",
+    title="Average Comments: Shorts vs Normal",
+    text_auto=".0f",
+)
+
+fig_comments.update_layout(
+    xaxis_title="Video Type",
+    yaxis_title="Average Comments"
+)
+
+st.plotly_chart(fig_comments, use_container_width=True)
+
+# ==========================================
 # Engagement Rate Comparison
 # ==========================================
 
