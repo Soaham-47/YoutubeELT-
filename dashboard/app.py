@@ -4,7 +4,7 @@ import plotly.express as px
 import streamlit as st
 
 BASE_DIR = Path(__file__).resolve().parent
-csv_path = BASE_DIR / "yt_api_26-07-2026.csv"
+csv_path = BASE_DIR / "yt_api_12-06-2026.csv"
 
 
 # -------------------------
@@ -27,8 +27,8 @@ def load_data():
     df = pd.read_csv(csv_path)
 
     # Convert data types
-    df["Published_at"] = pd.to_datetime(df["Published_at"])
-    numeric_cols = ["View_count", "Like_count", "Comment_count"]
+    df["publishedAt"] = pd.to_datetime(df["publishedAt"])
+    numeric_cols = ["viewCount", "likeCount", "commentCount"]
 
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
@@ -41,7 +41,7 @@ df = load_data()
 # -------------------------
 # Last Updated
 # -------------------------
-last_updated = df["Published_at"].max()
+last_updated = df["publishedAt"].max()
 
 st.info(
     f"📌 Dashboard Snapshot Date: "
@@ -51,10 +51,10 @@ st.info(
 # -------------------------
 # KPI Cards
 # -------------------------
-total_views = int(df["View_count"].sum())
-total_likes = int(df["Like_count"].sum())
-total_comments = int(df["Comment_count"].sum())
-total_videos = df["Video_id"].nunique()
+total_views = int(df["viewCount"].sum())
+total_likes = int(df["likeCount"].sum())
+total_comments = int(df["commentCount"].sum())
+total_videos = df["video_id"].nunique()
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -71,14 +71,14 @@ st.divider()
 st.subheader(" Top 10 Videos by Views")
 
 top_views = (
-    df.nlargest(10, "View_count")
-    [["Video_title", "View_count"]]
+    df.nlargest(10, "viewCount")
+    [["title", "viewCount"]]
 )
 
 fig_top_views = px.bar(
     top_views,
-    x="View_count",
-    y="Video_title",
+    x="viewCount",
+    y="title",
     orientation="h",
     title="Top Performing Videos",
 )
@@ -97,14 +97,14 @@ st.plotly_chart(fig_top_views, width='stretch')
 st.subheader(" Top 10 Videos by Likes")
 
 top_likes = (
-    df.nlargest(10, "Like_count")
-    [["Video_title", "Like_count"]]
+    df.nlargest(10, "likeCount")
+    [["title", "likeCount"]]
 )
 
 fig_top_likes = px.bar(
     top_likes,
-    x="Like_count",
-    y="Video_title",
+    x="likeCount",
+    y="title",
     orientation="h",
     title="Most Liked Videos",
 )
@@ -124,10 +124,10 @@ st.subheader(" Engagement Analysis ")
 
 fig_engagement = px.scatter(
     df,
-    x="View_count",
-    y="Like_count",
-    size="Comment_count",
-    hover_name="Video_title",
+    x="viewCount",
+    y="likeCount",
+    size="commentCount",
+    hover_name="title",
     title="Views vs Likes (Bubble Size = Comments)"
 )
 
@@ -139,7 +139,7 @@ st.plotly_chart(fig_engagement, width='stretch')
 st.subheader(" Publishing Trend")
 
 monthly_uploads = (
-    df.set_index("Published_at")
+    df.set_index("publishedAt")
       .resample("ME")
       .size()
       .reset_index(name="Videos")
@@ -147,7 +147,7 @@ monthly_uploads = (
 
 fig_uploads = px.line(
     monthly_uploads,
-    x="Published_at",
+    x="publishedAt",
     y="Videos",
     markers=True,
     title="Videos Published Over Time"
@@ -169,10 +169,10 @@ engagement_df = df.copy()
 
 engagement_df["Engagement_Rate"] = (
     (
-        engagement_df["Like_count"] +
-        engagement_df["Comment_count"]
+        engagement_df["likeCount"] +
+        engagement_df["commentCount"]
     )
-    / engagement_df["View_count"].replace(0, pd.NA)
+    / engagement_df["viewCount"].replace(0, pd.NA)
 ) * 100
 
 top_engagement = (
@@ -183,9 +183,9 @@ top_engagement = (
         "Engagement_Rate"
     )[
         [
-            "Video_title",
+            "title",
             "Engagement_Rate",
-            "View_count"
+            "viewCount"
         ]
     ]
 )
@@ -207,16 +207,16 @@ st.subheader(" Most Recent Uploads")
 
 recent = (
     df.sort_values(
-        "Published_at",
+        "publishedAt",
         ascending=False
     )
     .head(10)[
         [
-            "Video_title",
-            "Published_at",
-            "View_count",
-            "Like_count",
-            "Comment_count"
+            "title",
+            "publishedAt",
+            "viewCount",
+            "likeCount",
+            "commentCount"
         ]
     ]
 )
@@ -236,10 +236,10 @@ st.subheader(" Shorts vs Normal Videos")
 comparison = (
     df.groupby("Video_type")
       .agg(
-          Videos=("Video_id", "count"),
-          Avg_Views=("View_count", "mean"),
-          Avg_Likes=("Like_count", "mean"),
-          Avg_Comments=("Comment_count", "mean"),
+          Videos=("video_id", "count"),
+          Avg_Views=("viewCount", "mean"),
+          Avg_Likes=("likeCount", "mean"),
+          Avg_Comments=("commentCount", "mean"),
       )
       .round(0)
 )
@@ -247,10 +247,10 @@ comparison = (
 # Engagement Rate
 engagement_rate = (
     (
-        df.groupby("Video_type")["Like_count"].sum()
-        + df.groupby("Video_type")["Comment_count"].sum()
+        df.groupby("Video_type")["likeCount"].sum()
+        + df.groupby("Video_type")["commentCount"].sum()
     )
-    / df.groupby("Video_type")["View_count"].sum()
+    / df.groupby("Video_type")["viewCount"].sum()
     * 100
 ).round(2)
 
@@ -270,7 +270,7 @@ st.dataframe(comparison, use_container_width=True)
 st.subheader(" Average Views by Video Type")
 
 avg_views = (
-    df.groupby("Video_type")["View_count"]
+    df.groupby("Video_type")["viewCount"]
       .mean()
       .reset_index()
 )
@@ -278,7 +278,7 @@ avg_views = (
 fig_views = px.bar(
     avg_views,
     x="Video_type",
-    y="View_count",
+    y="viewCount",
     title="Average Views: Shorts vs Normal",
     text_auto=".0f",
 )
@@ -297,7 +297,7 @@ st.plotly_chart(fig_views, use_container_width=True)
 st.subheader(" Average Likes by Video Type")
 
 avg_likes = (
-    df.groupby("Video_type")["Like_count"]
+    df.groupby("Video_type")["likeCount"]
       .mean()
       .reset_index()
 )
@@ -305,7 +305,7 @@ avg_likes = (
 fig_likes = px.bar(
     avg_likes,
     x="Video_type",
-    y="Like_count",
+    y="likeCount",
     title="Average Likes: Shorts vs Normal",
     text_auto=".0f",
 )
