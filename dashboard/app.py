@@ -40,6 +40,11 @@ def load_data():
     return pd.read_sql(query, engine)
 
 # -------------------------
+# Load Data Frame 
+# -------------------------
+df = load_data()
+
+# -------------------------
 # Last Updated
 # -------------------------
 if not df.empty:
