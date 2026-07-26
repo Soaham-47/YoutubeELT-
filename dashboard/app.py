@@ -18,16 +18,12 @@ st.caption("MrBeast YouTube Analytics | Live Automated Dashboard")
 # -------------------------
 # Database Connection
 # -------------------------
-# Update credentials below to match your Postgres setup.
-# Note: Use 'localhost' if running Streamlit locally outside Docker,
-# or use your Postgres container name (e.g. 'postgres-analytics') if running inside Docker.
-DB_URI = "postgresql://youtube_user:youtube_password@localhost:5432/youtube_analytics"
 
-@st.cache_data(ttl=300)  # Refresh data cache every 5 minutes
+DB_URL = st.secrets["postgres"]["db_url"]
+
+@st.cache_data(ttl=300)
 def load_data():
-    engine = create_engine(DB_URI)
-    
-    # Query the core schema table directly
+    engine = create_engine(DB_URL)
     query = """
         SELECT 
             "Video_id",
@@ -41,19 +37,7 @@ def load_data():
         FROM core.yt_api
         ORDER BY "Published_at" DESC;
     """
-    df = pd.read_sql(query, engine)
-
-    # Convert data types safely
-    df["Published_at"] = pd.to_datetime(df["Published_at"])
-    
-    numeric_cols = ["View_count", "Like_count", "Comment_count"]
-    for col in numeric_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-
-    return df
-
-df = load_data()
+    return pd.read_sql(query, engine)
 
 # -------------------------
 # Last Updated
