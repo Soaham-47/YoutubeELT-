@@ -44,7 +44,7 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/Soaham-47/YoutubeELT-s](https://github.com/Soaham-47/YoutubeELT-s)
+   git clone https://github.com/Soaham-47/YoutubeELT-.git
    cd youtube-elt-pipeline
    pip install -r requirements.txt
    ```
