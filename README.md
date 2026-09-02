@@ -69,7 +69,7 @@ METADATA_DATABASE_USERNAME=airflow_meta_user
 METADATA_DATABASE_PASSWORD='VNXkgKEPBn69yYwA'
  
  Celery database credentials. This is the database where Celery stores its task results. 
-CELERY_BACKEND_DATABASE_NAME=celery_results_db
+CELERY_BACKEND_NAME=celery_results_db
 CELERY_BACKEND_USERNAME=celery_user
 CELERY_BACKEND_PASSWORD='L4PYpRNq6mxSQfyj'
  
