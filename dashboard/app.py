@@ -24,7 +24,7 @@ st.caption("MrBeast YouTube Analytics | Snapshot-based Dashboard")
 # -------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path,encoding="utf-16")
 
     # Convert data types
     df["Published_at"] = pd.to_datetime(df["Published_at"])
