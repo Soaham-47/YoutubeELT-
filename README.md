@@ -47,9 +47,11 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
    git clone [https://github.com/Soaham-47/YoutubeELT-s](https://github.com/Soaham-47/YoutubeELT-s)
    cd youtube-elt-pipeline
    pip install -r requirements.txt
+   ```
 2. **Environment Configuration:**
 Create a .env file in the root directory in the format:
 
+```bash
  DockerHub image
 DOCKERHUB_NAMESPACE=your_dockerhub_username
 DOCKERHUB_REPOSITORY=your_repo_name
@@ -85,11 +87,13 @@ FERNET_KEY="your_fernet_key"
  Youtube parameters
 API_KEY="your_api_key"
 CHANNEL_HANDLE='MrBeast'
+```
 
 3.**Launch the Pipeline:**
 
-'''Bash
+```Bash
 docker compose up -d
+```
 Access the Airflow UI at http://localhost:8080 (after waiting for 60 sec for the containers to run)
 
 To check containers status or errors, write docker compose ps or docker compose logs in the cmd.
