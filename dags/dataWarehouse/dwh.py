@@ -3,10 +3,7 @@ import os
 import sys
 from airflow.decorators import task
 
-# Get the absolute path of the directory containing main.py (the dags folder)
 dag_path = os.path.dirname(os.path.abspath(__file__))
-
-# Add the dags folder and its subfolders to the python path
 if dag_path not in sys.path:
     sys.path.insert(0, dag_path)
     sys.path.insert(0, os.path.join(dag_path, 'api'))
@@ -15,8 +12,8 @@ if dag_path not in sys.path:
 from dataWarehouse.data_loading import load_data
 from dataWarehouse.data_modifications import (
     delete_rows,
-    insert_rows,
-    update_rows,
+    upsert_staging_batch,
+    upsert_core_batch,
 )
 from dataWarehouse.data_transformations import transform_data
 from dataWarehouse.data_utils import (
@@ -42,19 +39,16 @@ def staging_table():
         create_table(schema)
         table_ids = get_video_ids(cursor, schema)
 
-        for row in YT_data:
-            if row['video_id'] in table_ids:
-                update_rows(conn, cursor, schema, row)
-            else:
-                insert_rows(conn, cursor, schema, row)
+        # 1. Bulk upsert all JSON data in a single shot
+        upsert_staging_batch(conn, cursor, YT_data)
 
-        ids_in_json = set(row['video_id'] for row in YT_data)
+        # 2. Bulk delete rows removed from source
+        ids_in_json = set(r.get('video_id') or r.get('Video_id') for r in YT_data)
         ids_to_delete = table_ids - ids_in_json
         if ids_to_delete:
             delete_rows(conn, cursor, schema, ids_to_delete)
 
         logger.info(f"Staging table {schema}.{TABLE} updated successfully.")
-
     except Exception as e:
         logger.error(f"Error in staging_table task: {e}")
         raise e
@@ -71,21 +65,18 @@ def core_table():
         conn, cursor = get_conn_cursor()
         create_schema(schema)
         create_table(schema)
-        table_ids = get_video_ids(cursor, schema)
 
-        # Select from uppercase STAGING schema and YT_API table
-        cursor.execute(f"SELECT * FROM STAGING.{TABLE};")
+        # Read staging data
+        cursor.execute(f'SELECT * FROM "YT_ANALYTICS_DB".STAGING.{TABLE};')
         staging_rows = cursor.fetchall()
 
-        for row in staging_rows:
-            transformed_row = transform_data(row)
-            if transformed_row['Video_id'] in table_ids:
-                update_rows(conn, cursor, schema, transformed_row)
-            else:
-                insert_rows(conn, cursor, schema, transformed_row)
+        # Transform in memory
+        transformed_rows = [transform_data(row) for row in staging_rows]
+
+        # Bulk upsert all transformed records
+        upsert_core_batch(conn, cursor, transformed_rows)
 
         logger.info(f"Core table {schema}.{TABLE} updated successfully.")
-
     except Exception as e:
         logger.error(f"Error in core_table task: {e}")
         raise e

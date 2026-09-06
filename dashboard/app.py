@@ -1,11 +1,21 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 import pandas as pd
 import plotly.express as px
+import snowflake.connector
 import streamlit as st
 
+# -------------------------
+# Load Environment Variables
+# -------------------------
 BASE_DIR = Path(__file__).resolve().parent
-csv_path = BASE_DIR / "yt_api_03-09-2026.csv"
-
+env_path = (
+    BASE_DIR / ".env"
+    if (BASE_DIR / ".env").exists()
+    else BASE_DIR.parent / ".env"
+)
+load_dotenv(env_path)
 
 # -------------------------
 # Page Configuration
@@ -13,23 +23,53 @@ csv_path = BASE_DIR / "yt_api_03-09-2026.csv"
 st.set_page_config(
     page_title="YouTube Analytics Dashboard",
     page_icon="📺",
-    layout="wide"
+    layout="wide",
 )
 
 st.title("📺 YouTube Analytics Dashboard")
-st.caption("MrBeast YouTube Analytics | Snapshot-based Dashboard")
+st.caption("MrBeast YouTube Analytics | Live Cloud Dashboard")
 
 # -------------------------
-# Load Data
+# Sidebar Refresh Controls
 # -------------------------
-@st.cache_data
+if st.sidebar.button("🔄 Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
+
+
+# -------------------------
+# Load Data from Snowflake
+# -------------------------
+@st.cache_data(ttl=60)
 def load_data():
-    df = pd.read_csv(csv_path,encoding="utf-16")
+    conn = snowflake.connector.connect(
+        user=os.getenv("SNOWFLAKE_USER"),
+        password=os.getenv("SNOWFLAKE_PASSWORD"),
+        account=os.getenv("SNOWFLAKE_ACCOUNT"),
+        warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
+        database="YT_ANALYTICS_DB",
+        schema="CORE",
+        role=os.getenv("SNOWFLAKE_ROLE"),
+    )
+
+    query = """
+        SELECT 
+            "Video_id",
+            "Video_title",
+            "Published_at",
+            "Duration",
+            "Video_type",
+            "View_count",
+            "Like_count",
+            "Comment_count"
+        FROM "YT_ANALYTICS_DB".CORE.YT_API;
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
 
     # Convert data types
     df["Published_at"] = pd.to_datetime(df["Published_at"])
     numeric_cols = ["View_count", "Like_count", "Comment_count"]
-
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
@@ -45,7 +85,7 @@ last_updated = df["Published_at"].max()
 
 st.info(
     f"📌 Dashboard Snapshot Date: "
-    f"{last_updated.strftime('%d %B %Y')}"
+    f"{last_updated.strftime('%d %B %Y') if pd.notnull(last_updated) else 'N/A'}"
 )
 
 # -------------------------
@@ -86,10 +126,10 @@ fig_top_views = px.bar(
 fig_top_views.update_layout(
     yaxis={"categoryorder": "total ascending"},
     xaxis_title="Views",
-    yaxis_title=""
+    yaxis_title="",
 )
 
-st.plotly_chart(fig_top_views, width='stretch')
+st.plotly_chart(fig_top_views, use_container_width=True)
 
 # -------------------------
 # Top 10 Videos by Likes
@@ -112,10 +152,10 @@ fig_top_likes = px.bar(
 fig_top_likes.update_layout(
     yaxis={"categoryorder": "total ascending"},
     xaxis_title="Likes",
-    yaxis_title=""
+    yaxis_title="",
 )
 
-st.plotly_chart(fig_top_likes, width='stretch')
+st.plotly_chart(fig_top_likes, use_container_width=True)
 
 # -------------------------
 # Engagement Analysis
@@ -128,10 +168,10 @@ fig_engagement = px.scatter(
     y="Like_count",
     size="Comment_count",
     hover_name="Video_title",
-    title="Views vs Likes (Bubble Size = Comments)"
+    title="Views vs Likes (Bubble Size = Comments)",
 )
 
-st.plotly_chart(fig_engagement, width='stretch')
+st.plotly_chart(fig_engagement, use_container_width=True)
 
 # -------------------------
 # Publishing Trend
@@ -150,15 +190,15 @@ fig_uploads = px.line(
     x="Published_at",
     y="Videos",
     markers=True,
-    title="Videos Published Over Time"
+    title="Videos Published Over Time",
 )
 
 fig_uploads.update_layout(
     xaxis_title="Date",
-    yaxis_title="Number of Videos"
+    yaxis_title="Number of Videos",
 )
 
-st.plotly_chart(fig_uploads, width='stretch')
+st.plotly_chart(fig_uploads, use_container_width=True)
 
 # -------------------------
 # Engagement Rate Ranking
@@ -178,14 +218,11 @@ engagement_df["Engagement_Rate"] = (
 top_engagement = (
     engagement_df
     .dropna(subset=["Engagement_Rate"])
-    .nlargest(
-        10,
-        "Engagement_Rate"
-    )[
+    .nlargest(10, "Engagement_Rate")[
         [
             "Video_title",
             "Engagement_Rate",
-            "View_count"
+            "View_count",
         ]
     ]
 )
@@ -195,10 +232,7 @@ top_engagement["Engagement_Rate"] = (
     .round(2)
 )
 
-st.dataframe(
-    top_engagement,
-    width='stretch'
-)
+st.dataframe(top_engagement, use_container_width=True)
 
 # -------------------------
 # Recent Uploads
@@ -206,25 +240,20 @@ st.dataframe(
 st.subheader(" Most Recent Uploads")
 
 recent = (
-    df.sort_values(
-        "Published_at",
-        ascending=False
-    )
+    df.sort_values("Published_at", ascending=False)
     .head(10)[
         [
             "Video_title",
             "Published_at",
             "View_count",
             "Like_count",
-            "Comment_count"
+            "Comment_count",
         ]
     ]
 )
 
-st.dataframe(
-    recent,
-    width='stretch'
-)
+st.dataframe(recent, use_container_width=True)
+
 # ==========================================
 # Shorts vs Normal Analysis
 # ==========================================
@@ -232,7 +261,6 @@ st.dataframe(
 st.divider()
 st.subheader(" Shorts vs Normal Videos")
 
-# Create comparison table
 comparison = (
     df.groupby("Video_type")
       .agg(
@@ -244,7 +272,6 @@ comparison = (
       .round(0)
 )
 
-# Engagement Rate
 engagement_rate = (
     (
         df.groupby("Video_type")["Like_count"].sum()
@@ -256,7 +283,6 @@ engagement_rate = (
 
 comparison["Engagement_Rate (%)"] = engagement_rate
 
-# Format numbers nicely
 comparison["Avg_Views"] = comparison["Avg_Views"].astype(int)
 comparison["Avg_Likes"] = comparison["Avg_Likes"].astype(int)
 comparison["Avg_Comments"] = comparison["Avg_Comments"].astype(int)
@@ -285,7 +311,7 @@ fig_views = px.bar(
 
 fig_views.update_layout(
     xaxis_title="Video Type",
-    yaxis_title="Average Views"
+    yaxis_title="Average Views",
 )
 
 st.plotly_chart(fig_views, use_container_width=True)
@@ -312,7 +338,7 @@ fig_likes = px.bar(
 
 fig_likes.update_layout(
     xaxis_title="Video Type",
-    yaxis_title="Average Likes"
+    yaxis_title="Average Likes",
 )
 
 st.plotly_chart(fig_likes, use_container_width=True)
@@ -339,7 +365,7 @@ fig_comments = px.bar(
 
 fig_comments.update_layout(
     xaxis_title="Video Type",
-    yaxis_title="Average Comments"
+    yaxis_title="Average Comments",
 )
 
 st.plotly_chart(fig_comments, use_container_width=True)
@@ -363,7 +389,7 @@ fig_engagement = px.bar(
 
 fig_engagement.update_layout(
     xaxis_title="Video Type",
-    yaxis_title="Engagement Rate (%)"
+    yaxis_title="Engagement Rate (%)",
 )
 
 st.plotly_chart(fig_engagement, use_container_width=True)
@@ -372,4 +398,4 @@ st.plotly_chart(fig_engagement, use_container_width=True)
 # Raw Data
 # -------------------------
 with st.expander(" View Raw Dataset"):
-    st.dataframe(df, width='stretch')
+    st.dataframe(df, use_container_width=True)

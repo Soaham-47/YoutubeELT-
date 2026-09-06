@@ -68,7 +68,7 @@ x-airflow-common:
 
     # Airflow Snowflake Connection (URI format)
     # snowflake://<user>:<password>@<account>/<database>/<schema>?warehouse=<warehouse>&role=<role>
-    AIRFLOW_CONN_SNOWFLAKE_DEFAULT: 'snowflake://${SNOWFLAKE_USER}:${SNOWFLAKE_PASSWORD}@${SNOWFLAKE_ACCOUNT}/${SNOWFLAKE_DATABASE}/${SNOWFLAKE_SCHEMA}?warehouse=${SNOWFLAKE_WAREHOUSE}&role=${SNOWFLAKE_ROLE}'
+    AIRFLOW_CONN_SNOWFLAKE_DEFAULT: 'snowflake://${SNOWFLAKE_USER}:${SNOWFLAKE_PASSWORD}@${SNOWFLAKE_ACCOUNT}/${SNOWFLAKE_DATABASE}/${SNOWFLAKE_SCHEMA}?warehouse=${SNOWFLAKE_WAREHOUSE}&role=${SNOWFLAKE_ROLE}&account=${SNOWFLAKE_ACCOUNT}'
 
     # Snowflake environment variables - read directly by Soda configuration.yml
     SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT}

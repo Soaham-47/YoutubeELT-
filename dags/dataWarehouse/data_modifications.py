@@ -11,100 +11,111 @@ def _val(row, *keys, default=None):
     return default
 
 
-def insert_rows(conn, cursor, schema, row):
-    schema = schema.upper()
-    if schema == "STAGING":
-        insert_sql = f"""
-            INSERT INTO {schema}.{TABLE} (
-                "Video_id", "Video_title", "Published_at", "Duration", "View_count", "Like_count", "Comment_count"
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s);
-        """
-        cursor.execute(
-            insert_sql,
-            (
-                _val(row, "video_id", "Video_id", "id"),
-                _val(row, "title", "Video_title", "video_title"),
-                _val(row, "publishedAt", "Published_at", "published_at"),
-                _val(row, "duration", "Duration"),
-                _val(row, "viewCount", "View_count", "view_count"),
-                _val(row, "likeCount", "Like_count", "like_count"),
-                _val(row, "commentCount", "Comment_count", "comment_count"),
-            ),
+def upsert_staging_batch(conn, cursor, records):
+    """Bulk upserts staging records in a single round-trip."""
+    if not records:
+        return
+
+    # Create a temporary table to receive the batch instantly
+    cursor.execute("""
+        CREATE TEMPORARY TABLE STAGING.YT_API_TEMP LIKE STAGING.YT_API;
+    """)
+
+    insert_sql = """
+        INSERT INTO STAGING.YT_API_TEMP (
+            "Video_id", "Video_title", "Published_at", "Duration", "View_count", "Like_count", "Comment_count"
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """
+    params = [
+        (
+            _val(r, "video_id", "Video_id", "id"),
+            _val(r, "title", "Video_title", "video_title"),
+            _val(r, "publishedAt", "Published_at", "published_at"),
+            _val(r, "duration", "Duration"),
+            _val(r, "viewCount", "View_count", "view_count"),
+            _val(r, "likeCount", "Like_count", "like_count"),
+            _val(r, "commentCount", "Comment_count", "comment_count"),
         )
-    else:  # CORE
-        insert_sql = f"""
-            INSERT INTO {schema}.{TABLE} (
-                "Video_id", "Video_title", "Published_at", "Duration", "Video_type", "View_count", "Like_count", "Comment_count"
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-        """
-        cursor.execute(
-            insert_sql,
-            (
-                _val(row, "Video_id", "video_id"),
-                _val(row, "Video_title", "title", "video_title"),
-                _val(row, "Published_at", "publishedAt", "published_at"),
-                _val(row, "Duration", "duration"),
-                _val(row, "Video_type", "video_type"),
-                _val(row, "View_count", "viewCount", "view_count"),
-                _val(row, "Like_count", "likeCount", "like_count"),
-                _val(row, "Comment_count", "commentCount", "comment_count"),
-            ),
-        )
+        for r in records
+    ]
+    cursor.executemany(insert_sql, params)
+
+    # Perform set-based MERGE in Snowflake warehouse memory (sub-second)
+    merge_sql = """
+        MERGE INTO STAGING.YT_API AS target
+        USING STAGING.YT_API_TEMP AS source
+        ON target."Video_id" = source."Video_id"
+        WHEN MATCHED THEN UPDATE SET
+            target."Video_title" = source."Video_title",
+            target."Published_at" = source."Published_at",
+            target."Duration" = source."Duration",
+            target."View_count" = source."View_count",
+            target."Like_count" = source."Like_count",
+            target."Comment_count" = source."Comment_count"
+        WHEN NOT MATCHED THEN INSERT (
+            "Video_id", "Video_title", "Published_at", "Duration", "View_count", "Like_count", "Comment_count"
+        ) VALUES (
+            source."Video_id", source."Video_title", source."Published_at", source."Duration",
+            source."View_count", source."Like_count", source."Comment_count"
+        );
+    """
+    cursor.execute(merge_sql)
+    cursor.execute("DROP TABLE IF EXISTS STAGING.YT_API_TEMP;")
     conn.commit()
+    logger.info(f"Successfully batch-upserted {len(records)} rows into STAGING.")
 
 
-def update_rows(conn, cursor, schema, row):
-    schema = schema.upper()
-    if schema == "STAGING":
-        update_sql = f"""
-            UPDATE {schema}.{TABLE} SET
-                "Video_title" = %s,
-                "Published_at" = %s,
-                "Duration" = %s,
-                "View_count" = %s,
-                "Like_count" = %s,
-                "Comment_count" = %s
-            WHERE "Video_id" = %s;
-        """
-        cursor.execute(
-            update_sql,
-            (
-                _val(row, "title", "Video_title", "video_title"),
-                _val(row, "publishedAt", "Published_at", "published_at"),
-                _val(row, "duration", "Duration"),
-                _val(row, "viewCount", "View_count", "view_count"),
-                _val(row, "likeCount", "Like_count", "like_count"),
-                _val(row, "commentCount", "Comment_count", "comment_count"),
-                _val(row, "video_id", "Video_id", "id"),
-            ),
+def upsert_core_batch(conn, cursor, records):
+    if not records:
+        return
+
+    cursor.execute("""
+        CREATE TEMPORARY TABLE "YT_ANALYTICS_DB".CORE.YT_API_TEMP LIKE "YT_ANALYTICS_DB".CORE.YT_API;
+    """)
+
+    insert_sql = """
+        INSERT INTO "YT_ANALYTICS_DB".CORE.YT_API_TEMP (
+            "Video_id", "Video_title", "Published_at", "Duration", "Video_type", "View_count", "Like_count", "Comment_count"
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+    """
+    params = [
+        (
+            _val(r, "Video_id", "video_id"),
+            _val(r, "Video_title", "title", "video_title"),
+            str(_val(r, "Published_at", "publishedAt", "published_at")),
+            _val(r, "Duration", "duration"),
+            _val(r, "Video_type", "video_type"),
+            _val(r, "View_count", "viewCount", "view_count"),
+            _val(r, "Like_count", "likeCount", "like_count"),
+            _val(r, "Comment_count", "commentCount", "comment_count"),
         )
-    else:  # CORE
-        update_sql = f"""
-            UPDATE {schema}.{TABLE} SET
-                "Video_title" = %s,
-                "Published_at" = %s,
-                "Duration" = %s,
-                "Video_type" = %s,
-                "View_count" = %s,
-                "Like_count" = %s,
-                "Comment_count" = %s
-            WHERE "Video_id" = %s;
-        """
-        cursor.execute(
-            update_sql,
-            (
-                _val(row, "Video_title", "title", "video_title"),
-                _val(row, "Published_at", "publishedAt", "published_at"),
-                _val(row, "Duration", "duration"),
-                _val(row, "Video_type", "video_type"),
-                _val(row, "View_count", "viewCount", "view_count"),
-                _val(row, "Like_count", "likeCount", "like_count"),
-                _val(row, "Comment_count", "commentCount", "comment_count"),
-                _val(row, "Video_id", "video_id"),
-            ),
-        )
+        for r in records
+    ]
+    cursor.executemany(insert_sql, params)
+
+    merge_sql = """
+        MERGE INTO "YT_ANALYTICS_DB".CORE.YT_API AS target
+        USING "YT_ANALYTICS_DB".CORE.YT_API_TEMP AS source
+        ON target."Video_id" = source."Video_id"
+        WHEN MATCHED THEN UPDATE SET
+            target."Video_title" = source."Video_title",
+            target."Published_at" = source."Published_at",
+            target."Duration" = source."Duration",
+            target."Video_type" = source."Video_type",
+            target."View_count" = source."View_count",
+            target."Like_count" = source."Like_count",
+            target."Comment_count" = source."Comment_count"
+        WHEN NOT MATCHED THEN INSERT (
+            "Video_id", "Video_title", "Published_at", "Duration", "Video_type", "View_count", "Like_count", "Comment_count"
+        ) VALUES (
+            source."Video_id", source."Video_title", source."Published_at", source."Duration",
+            source."Video_type", source."View_count", source."Like_count", source."Comment_count"
+        );
+    """
+    cursor.execute(merge_sql)
+    cursor.execute('DROP TABLE IF EXISTS "YT_ANALYTICS_DB".CORE.YT_API_TEMP;')
     conn.commit()
-
+    logger.info(f"Successfully batch-upserted {len(records)} rows into CORE.")
 
 def delete_rows(conn, cursor, schema, ids_to_delete):
     if not ids_to_delete:
