@@ -87,6 +87,14 @@ FERNET_KEY="your_fernet_key"
  Youtube parameters
 API_KEY="your_api_key"
 CHANNEL_HANDLE='MrBeast'
+ Snowflake parameters
+SNOWFLAKE_ACCOUNT=YourAccount
+SNOWFLAKE_USER=YourUsername
+SNOWFLAKE_PASSWORD=YourPasswordHere
+SNOWFLAKE_DATABASE=YT_ANALYTICS_DB
+SNOWFLAKE_WAREHOUSE=YT_WH
+SNOWFLAKE_ROLE=ACCOUNTADMIN
+SNOWFLAKE_SCHEMA=STAGING
 ```
 
 3.**Launch the Pipeline:**

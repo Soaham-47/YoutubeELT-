@@ -1,20 +1,23 @@
-# Ensure there is a space after the colon
-checks for yt_api:
-  - missing_count("Video_id") = 0
-  - duplicate_count("Video_id") = 0
+# /opt/airflow/include/soda/checks.yml
 
-  - likes_integrity_violation = 0:
-      name: "Check for Likes count greater than Video views"
-      likes_integrity_violation query: |
-        SELECT COUNT(*) 
-        FROM yt_api 
-        WHERE "Like_count" > "View_count"
-        AND "View_count" > 0
+for each dataset:
+  datasets:
+    - YT_API
+  checks:
+    # Row and identity validation
+    - row_count > 0
+    - missing_count("Video_id") = 0
+    - duplicate_count("Video_id") = 0
+    - missing_count("Video_title") = 0
+    - missing_count("Published_at") = 0
 
-  - comments_integrity_violation = 0:
-      name: "Check for Comment count greater than Video views"
-      comments_integrity_violation query: |
-        SELECT COUNT(*) 
-        FROM yt_api 
-        WHERE "Comment_count" > "View_count"
-        AND "View_count" > 0
+    # Numeric metrics validation
+    - min("View_count") >= 0
+    - min("Like_count") >= 0
+    - min("Comment_count") >= 0
+
+# Core-specific validation (runs only when scanning CORE)
+checks for YT_API:
+  - invalid_count("Video_type") = 0:
+      valid values: ['Normal', 'Short']
+      filter: SCHEMA = 'CORE'

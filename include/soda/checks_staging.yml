@@ -1,0 +1,12 @@
+checks for YT_API:
+  # Row and identity validation
+  - row_count > 0
+  - missing_count("Video_id") = 0
+  - duplicate_count("Video_id") = 0
+  - missing_count("Video_title") = 0
+  - missing_count("Published_at") = 0
+
+  # Metric validation
+  - min("View_count") >= 0
+  - min("Like_count") >= 0
+  - min("Comment_count") >= 0
