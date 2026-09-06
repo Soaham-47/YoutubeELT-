@@ -1,21 +1,24 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 import pandas as pd
 import plotly.express as px
 import snowflake.connector
 import streamlit as st
 
-# -------------------------
-# Load Environment Variables
-# -------------------------
-BASE_DIR = Path(__file__).resolve().parent
-env_path = (
-    BASE_DIR / ".env"
-    if (BASE_DIR / ".env").exists()
-    else BASE_DIR.parent / ".env"
-)
-load_dotenv(env_path)
+# Load local .env only if python-dotenv is available and file exists
+try:
+    from dotenv import load_dotenv
+
+    base_dir = Path(__file__).resolve().parent
+    env_path = (
+        base_dir / ".env"
+        if (base_dir / ".env").exists()
+        else base_dir.parent / ".env"
+    )
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass
 
 # -------------------------
 # Page Configuration
@@ -37,19 +40,23 @@ if st.sidebar.button("🔄 Refresh Data"):
     st.rerun()
 
 
+# Helper to check os.environ first, then st.secrets fallback
+def get_secret(key: str) -> str:
+    return os.getenv(key) or st.secrets.get(key, "")
+
 # -------------------------
 # Load Data from Snowflake
 # -------------------------
 @st.cache_data(ttl=60)
 def load_data():
     conn = snowflake.connector.connect(
-        user=os.getenv("SNOWFLAKE_USER"),
-        password=os.getenv("SNOWFLAKE_PASSWORD"),
-        account=os.getenv("SNOWFLAKE_ACCOUNT"),
-        warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
+        user=get_secret("SNOWFLAKE_USER"),
+        password=get_secret("SNOWFLAKE_PASSWORD"),
+        account=get_secret("SNOWFLAKE_ACCOUNT"),
+        warehouse=get_secret("SNOWFLAKE_WAREHOUSE"),
         database="YT_ANALYTICS_DB",
         schema="CORE",
-        role=os.getenv("SNOWFLAKE_ROLE"),
+        role=get_secret("SNOWFLAKE_ROLE"),
     )
 
     query = """
