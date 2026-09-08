@@ -71,6 +71,7 @@ with DAG(
     update_staging >> update_core >> trigger_data_quality
 
 # DAG 3: Data Quality Checks
+# DAG 3: Data Quality Checks
 with DAG(
     dag_id='data_quality',
     default_args=default_args,

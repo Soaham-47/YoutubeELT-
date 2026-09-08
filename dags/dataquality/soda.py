@@ -3,11 +3,6 @@ from airflow.operators.bash import BashOperator
 
 logger = logging.getLogger(__name__)
 
-import logging
-from airflow.operators.bash import BashOperator
-
-logger = logging.getLogger(__name__)
-
 SODA_PATH = "/opt/airflow/include/soda"
 DATASOURCE = "snowflake_datasource"
 

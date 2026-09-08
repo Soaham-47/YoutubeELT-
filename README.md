@@ -23,6 +23,7 @@ The pipeline utilizes a decoupled **3-DAG architecture** to ensure high reliabil
 | **Containerization** | Docker & Docker Compose |
 | **Data Validation** | Soda SQL |
 | **Source** | YouTube Data API v3 |
+| **Data Warehouse** | Snowflake |
 
 ---
 
