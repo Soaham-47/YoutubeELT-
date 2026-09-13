@@ -1,14 +1,14 @@
 import snowflake.connector
+from dotenv import load_dotenv
+import os
 
-USER = "SOAHAM47"               # Your Snowflake username
-PASSWORD = "nx6Tc6fT4bEysS4" # The password you created the account with
-ACCOUNT = "RPZUJOQ-RG25036"
+load_dotenv()
 
 try:
     conn = snowflake.connector.connect(
-        user=USER,
-        password=PASSWORD,
-        account=ACCOUNT,
+        user=os.getenv("SNOWFLAKE_USER"),
+        password=SNOWFLAKE_PASSWORD,
+        account=SNOWFLAKE_ACCOUNT,
         warehouse="YT_WH",
         database="YT_ANALYTICS_DB",
         schema="STAGING",
