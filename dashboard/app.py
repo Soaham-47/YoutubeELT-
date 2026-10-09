@@ -54,7 +54,7 @@ def load_data():
         password=get_secret("SNOWFLAKE_PASSWORD"),
         account=get_secret("SNOWFLAKE_ACCOUNT"),
         warehouse=get_secret("SNOWFLAKE_WAREHOUSE"),
-        database="YT_ANALYTICS_DB",
+        database=get_secret("SNOWFLAKE_DATABASE")",
         schema="CORE",
         role=get_secret("SNOWFLAKE_ROLE"),
     )
